@@ -15,11 +15,11 @@
 
 
 require 'rubygems'
-require 'net/http'
 require 'uri'
-require 'json'
+require 'httparty'
 
 class AlchemyAPI
+	include HTTParty
 
 	#Setup the endpoints
 	@@ENDPOINTS = {}
@@ -520,10 +520,7 @@ class AlchemyAPI
 		options['outputMode'] = 'json'
 		
 		#Fire off the HTTP request
-		res = Net::HTTP::post_form(URI.parse(url), options)
-		
-		#parse and return the response
-		return JSON.parse(res.body)
+		self.class.post(url, body: options).parsed_response
 	end
 end
 
