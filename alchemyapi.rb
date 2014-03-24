@@ -73,6 +73,15 @@ class AlchemyAPI
 	@@ENDPOINTS['microformats'] = {}
 	@@ENDPOINTS['microformats']['url']  = '/url/URLGetMicroformatData'
 	@@ENDPOINTS['microformats']['html'] = '/html/HTMLGetMicroformatData'
+	@@ENDPOINTS['taxonomy'] = {}
+	@@ENDPOINTS['taxonomy']['url']  = '/url/URLGetRankedTaxonomy'
+	@@ENDPOINTS['taxonomy']['text'] = '/text/TextGetRankedTaxonomy'
+	@@ENDPOINTS['taxonomy']['html'] = '/html/HTMLGetRankedTaxonomy'
+	@@ENDPOINTS['combined'] = {}
+	@@ENDPOINTS['combined']['url'] = '/url/URLGetCombinedData'
+	@@ENDPOINTS['combined']['text'] = '/text/TextGetCombinedData'
+	@@ENDPOINTS['image'] = {}
+	@@ENDPOINTS['image']['url'] = '/url/URLGetImage'
 		
 	@@BASE_URL = 'http://access.alchemyapi.com/calls'
 	
@@ -498,6 +507,90 @@ class AlchemyAPI
 	end
 
 
+	# Categorizes the text for a URL, text or HTML.
+	# For an overview, please refer to: http://www.alchemyapi.com/products/features/text-categorization/
+	# For the docs, please refer to: http://www.alchemyapi.com/api/taxonomy/
+	# 
+	# INPUT:
+	# flavor -> which version of the call, i.e.  url, text or html.
+	# data -> the data to analyze, either the the url, text or html code.
+	# options -> various parameters that can be used to adjust how the API works, see below for more info on the available options.
+	#
+	# Available Options:
+	# showSourceText -> 0: disabled (default), 1: enabled.
+	#
+	# OUTPUT:
+	# The response, already converted from JSON to a Ruby object. 
+	#
+	def taxonomy(flavor, data, options = {})
+		unless @@ENDPOINTS['taxonomy'].key?(flavor)
+			return { 'status'=>'ERROR', 'statusInfo'=>'Taxonomy info for ' + flavor + ' not available' }
+		end
+
+		#Add the URL encoded data to the options and analyze
+		options[flavor] = data
+		return analyze(@@ENDPOINTS['taxonomy'][flavor], options)
+	end
+
+
+	# Combined call (see options below for available extractions) for a URL or text.
+	# 
+	# INPUT:
+	# flavor -> which version of the call, i.e.  url or text.
+	# data -> the data to analyze, either the the url or text.
+	# options -> various parameters that can be used to adjust how the API works, see below for more info on the available options.
+	#
+	# Available Options:
+	# extract -> VALUE,VALUE,VALUE,... (possible VALUEs: page-image,entity,keyword,title,author,taxonomy,concept,relation,doc-sentiment)
+	# extractMode -> (only applies when 'page-image' VALUE passed to 'extract' option) 
+	# 		trust-metadata: less CPU-intensive, less accurate
+	# 		always-infer: more CPU-intensive, more accurate
+	# disambiguate -> whether to disambiguate detected entities, 0: disabled, 1: enabled (default)
+	# linkedData -> whether to include Linked Data content links with disambiguated entities, 0: disabled, 1: enabled (default). disambiguate must be enabled to use this.
+	# coreference -> whether to he/she/etc coreferences into detected entities, 0: disabled, 1: enabled (default)
+	# quotations -> whether to enable quotations extraction, 0: disabled (default), 1: enabled
+	# sentiment -> whether to enable entity-level sentiment analysis, 0: disabled (default), 1: enabled. Requires one additional API transaction if enabled.
+	# showSourceText -> 0: disabled (default), 1: enabled.
+	# maxRetrieve -> maximum number of named entities to extract (default: 50)
+	#
+	# OUTPUT:
+	# The response, already converted from JSON to a Ruby object. 
+	#
+	def combined(flavor, data, options = {})
+		unless @@ENDPOINTS['combined'].key?(flavor)
+			return { 'status'=>'ERROR', 'statusInfo'=>'Combined data for ' + flavor + ' not available' }
+		end
+
+		#Add the URL encoded data to the options and analyze
+		options[flavor] = data
+		return analyze(@@ENDPOINTS['combined'][flavor], options)
+	end
+
+
+	# Extract image from  a URL.
+	# 
+	# INPUT:
+	# flavor -> which version of the call, i.e.  url.
+	# data -> the data to analyze, either the the url, or html code.
+	# options -> various parameters that can be used to adjust how the API works, see below for more info on the available options.
+	#
+	# Available Options:
+	# extractMode -> trust-metadata: less CPU-intensive and less accurate, always-infer: more CPU-intensive and more accurate
+	#
+	# OUTPUT:
+	# The response, already converted from JSON to a Ruby object. 
+	#
+	def image(flavor, data, options = {})
+		unless @@ENDPOINTS['image'].key?(flavor)
+			return { 'status'=>'ERROR', 'statusInfo'=>'Image for ' + flavor + ' not available' }
+		end
+
+		#Add the URL encoded data to the options and analyze
+		options[flavor] = data
+		return analyze(@@ENDPOINTS['image'][flavor], options)
+	end
+
+
 	private
 
 
@@ -519,18 +612,8 @@ class AlchemyAPI
 		options['apikey'] = @apiKey
 		options['outputMode'] = 'json'
 		
-		uri = URI.parse(url)
-		req = Net::HTTP::Post.new(uri)
-		req.set_form_data(options)
-		
-		# disable gzip encoding which blows up in Zlib due to Ruby 2.0 bug
-		# otherwise you'll get Zlib::BufError: buffer error
-		req['Accept-Encoding'] = 'identity'
-		
 		#Fire off the HTTP request
-		res = Net::HTTP.start(uri.hostname, uri.port) do |http|
-      http.request(req)
-    end
+		res = Net::HTTP::post_form(URI.parse(url), options)
 		
 		#parse and return the response
 		return JSON.parse(res.body)

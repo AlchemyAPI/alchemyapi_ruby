@@ -168,7 +168,7 @@ class Tests < Test::Unit::TestCase
 		assert_equal response['status'], 'OK'
 		response = @@alchemyapi.category('random', @@test_text)
 		assert_equal response['status'], 'ERROR'		#invalid flavor
-		puts 'Relations tests complete'
+		puts 'Category tests complete'
 		puts ''	
 	end
 
@@ -193,6 +193,44 @@ class Tests < Test::Unit::TestCase
 		response = @@alchemyapi.microformats('url', @@test_url)
 		assert_equal response['status'], 'OK'
 		puts 'Microformat tests complete'
+		puts ''	
+	end
+
+	def test_taxonomy
+		puts 'Checking taxonomy . . . '
+		response = @@alchemyapi.taxonomy('text', @@test_text)
+		assert_equal response['status'], 'OK'
+		response = @@alchemyapi.taxonomy('url', @@test_url)
+		assert_equal response['status'], 'OK'
+		response = @@alchemyapi.taxonomy('html', @@test_html, { 'url'=>'test' })
+		assert_equal response['status'], 'OK'
+		response = @@alchemyapi.taxonomy('random', @@test_text)
+		assert_equal response['status'], 'ERROR'	#invalid flavor
+		puts 'Taxonomy tests complete'
+		puts ''
+	end
+
+	def test_combined
+		puts 'Checking combined . . . '
+		response = @@alchemyapi.combined('html', @@test_html, { 'url'=>'test' })
+		assert_equal response['status'], 'ERROR'	#only valid for text and URL content
+		response = @@alchemyapi.combined('text', @@test_text)
+		assert_equal response['status'], 'OK'
+		response = @@alchemyapi.combined('url', @@test_url)
+		assert_equal response['status'], 'OK'
+		puts 'Combined tests complete'
+		puts ''	
+	end
+
+	def test_image
+		puts 'Checking image . . . '
+		response = @@alchemyapi.image('text', @@test_text)
+		assert_equal response['status'], 'ERROR'	#only valid for URL content
+		response = @@alchemyapi.image('html', @@test_html, { 'url'=>'test' })
+		assert_equal response['status'], 'ERROR'	#only valid for URL content
+		response = @@alchemyapi.image('url', @@test_url)
+		assert_equal response['status'], 'OK'
+		puts 'Image tests complete'
 		puts ''	
 	end
 

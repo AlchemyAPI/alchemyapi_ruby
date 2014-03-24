@@ -437,3 +437,134 @@ end
 puts ''
 puts ''
 
+
+puts ''
+puts ''
+puts ''
+puts '############################################'
+puts '#  Taxonomy Example            			 #'
+puts '############################################'
+puts ''
+puts ''
+
+puts 'Processing url: ' + demo_url
+puts ''
+
+response = alchemyapi.taxonomy('url', demo_url)
+
+if response['status'] == 'OK'
+	puts '## Response Object ##'
+	puts JSON.pretty_generate(response)
+
+
+	puts ''
+	puts '## Taxonomy ##'
+	for taxonomy in response['taxonomy']
+		puts 'label: ' + taxonomy['label']
+		puts 'score: ' + taxonomy['score']
+		if taxonomy.key?('confident')
+			puts 'confident: ' + taxonomy['confident']
+		end
+		puts ''
+	end
+else
+	puts 'Error in taxonomy call: ' + response['statusInfo']
+end
+
+puts ''
+puts ''
+
+
+puts ''
+puts ''
+puts ''
+puts '############################################'
+puts '#  Image Extraction Example            	 #'
+puts '############################################'
+puts ''
+puts ''
+
+puts 'Processing url: ' + demo_url
+puts ''
+
+response = alchemyapi.image('url', demo_url, { 'extractMode'=>'trust-metadata' })
+
+if response['status'] == 'OK'
+	puts '## Response Object ##'
+	puts JSON.pretty_generate(response)
+
+
+	puts ''
+	puts '## Image Extraction ##'
+	if response.key?('image')
+		puts 'image: ' + response['image']
+	end
+	puts ''
+else
+	puts 'Error in image extraction call: ' + response['statusInfo']
+end
+
+puts ''
+puts ''
+
+
+puts ''
+puts ''
+puts ''
+puts '############################################'
+puts '#  Combined Example            			 #'
+puts '############################################'
+puts ''
+puts ''
+
+puts 'Processing url: ' + demo_url
+puts ''
+
+response = alchemyapi.combined('url', demo_url, { 'extract'=>'page-image,keyword,entity' })
+
+if response['status'] == 'OK'
+	puts '## Response Object ##'
+	puts JSON.pretty_generate(response)
+
+
+	puts ''
+	puts '## Combined Data ##'
+	if response.key?('keywords')
+		puts 'Keywords:'
+		for keyword in response['keywords']
+			puts "\ttext: " + keyword['text']
+			puts "\trelevance: " + keyword['relevance']
+			puts ''
+		end
+	end
+	if response.key?('image')
+		puts 'image: ' + response['image']
+		puts ''
+	end
+	if response.key?('entities')
+		puts 'Entities:'
+		for entity in response['entities']
+			puts "\trelevance: " + entity['relevance']
+			puts "\ttext: " + entity['text']
+			puts "\tcount: " + entity['count']
+			puts "\ttype: " + entity['type']
+			if entity.key?('disambiguated')
+				puts "\tdisambiguated: "
+				if entity['disambiguated'].key?('dbpedia')
+					puts "\t\tdbpedia: " + entity['disambiguated']['dbpedia']
+				end
+				if entity['disambiguated'].key?('freebase')
+					puts "\t\tfreebase: " + entity['disambiguated']['freebase']
+				end
+			end
+			puts ''
+		end
+	end
+	puts ''
+else
+	puts 'Error in combined call: ' + response['statusInfo']
+end
+
+puts ''
+puts ''
+
