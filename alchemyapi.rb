@@ -96,7 +96,7 @@ class AlchemyAPI
 			key.strip!
 
 			if key.empty?
-				#The key file should't be blank
+				#The key file shouldn't be blank
 				puts 'The api_key.txt file appears to be blank, please copy/paste your API key in the file: api_key.txt'
 				puts 'If you do not have an API Key from AlchemyAPI please register for one at: http://www.alchemyapi.com/api/register.html'			
 				Process.exit(1)
